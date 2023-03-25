@@ -2,6 +2,7 @@
 
 const router = require('express').Router();
 const { Category, Product } = require('../../models');
+const chalk = require('chalk');
 
 // adding async to the function instead of await //
 // The `/api/categories` endpoint
