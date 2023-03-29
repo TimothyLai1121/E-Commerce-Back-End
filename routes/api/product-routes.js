@@ -4,27 +4,77 @@ const { Product, Category, Tag, ProductTag } = require('../../models');
 // The `/api/products` endpoint
 
 // get all products
+// TODO
+// find all products
+// be sure to include its associated Category and Tag data
+// product.findAll({
 router.get('/', (req, res) => {
-  // find all products
-  // be sure to include its associated Category and Tag data
+  Product.findAll({
+    include: [
+      {
+        model: Category,
+      },
+      {
+        model: Tag,
+      },
+    ],
+  })
+    .then((products) => {
+      // send the found products as a JSON response
+      res.status(200).json(products);
+    })
+    .catch((err) => {
+      // log the error and send a 400 Bad Request response
+      console.log(err);
+      res.status(400).json(err);
+    });
 });
 
+// TODO
 // get one product
+// find a single product by its `id`
+// be sure to include its associated Category and Tag data
+// product.findOne
+
 router.get('/:id', (req, res) => {
-  // find a single product by its `id`
-  // be sure to include its associated Category and Tag data
+  Product.findOne({
+    where: {
+      id: req.params.id,
+    },
+    include: [
+      {
+        model: Category,
+      },
+      {
+        model: Tag,
+      },
+    ],
+  })
+    .then((product) => {
+      // send the found product as a JSON response
+      res.status(200).json(product);
+    })
+    .catch((err) => {
+      // log the error and send a 400 Bad Request response
+      console.log(err);
+      res.status(400).json(err);
+    });
 });
 
-// create new product
+
+// TODO
+//create new product
+/* req.body should look like this...
+  {
+    product_name: "Basketball",
+    price: 200.00,
+    stock: 3,
+    tagIds: [1, 2, 3, 4]
+  }
+*/
 router.post('/', (req, res) => {
-  /* req.body should look like this...
-    {
-      product_name: "Basketball",
-      price: 200.00,
-      stock: 3,
-      tagIds: [1, 2, 3, 4]
-    }
-  */
+
+
   Product.create(req.body)
     .then((product) => {
       // if there's product tags, we need to create pairings to bulk create in the ProductTag model
@@ -90,7 +140,24 @@ router.put('/:id', (req, res) => {
 });
 
 router.delete('/:id', (req, res) => {
-  // delete one product by its `id` value
+  Product.destroy({
+    where: {
+      id: req.params.id,
+    },
+  })
+    .then((deletedProduct) => {
+      if (!deletedProduct) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+      return ProductTag.destroy({ where: { product_id: req.params.id } });
+    })
+    .then(() => {
+      res.status(200).json({ message: 'Product deleted' });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(400).json(err);
+    });
 });
 
 module.exports = router;
